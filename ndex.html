@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TYPINGTEST</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Kantumruuy+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0d19;
+      --card-bg: #131728;
+      --border-purple: #8b5cf6;
+      --neon-cyan: #06b6d4;
+      --neon-pink: #ec4899;
+      --text-green: #4ade80;
+      --text-red: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Kantumruuy Pro', sans-serif; }
+    body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* Top Navbar */
+    .navbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 30px; background: #0f1222; border-bottom: 1px solid #1e2238; }
+    .logo { font-size: 1.4rem; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px; }
+    .logo span { background: linear-gradient(to right, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    
+    .nav-right { display: flex; align-items: center; gap: 20px; }
+    .nav-links { display: flex; gap: 20px; font-weight: 600; font-size: 0.9rem; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; transition: 0.2s; cursor: pointer; padding: 5px 10px; border-radius: 6px; }
+    .nav-links a.active, .nav-links a:hover { color: #fff; background: rgba(139, 92, 246, 0.2); text-shadow: 0 0 8px rgba(255,255,255,0.5); }
+
+    .lang-select { background: #1a1e33; color: var(--neon-cyan); border: 1px solid var(--neon-cyan); padding: 5px 10px; border-radius: 6px; font-weight: bold; outline: none; cursor: pointer; }
+
+    /* Main Container Grid Layout */
+    .app-container { display: grid; grid-template-columns: 1fr 340px; gap: 20px; padding: 20px; flex: 1; }
+
+    /* Tab Views */
+    .tab-content { display: none; }
+    .tab-content.active { display: flex; flex-direction: column; gap: 15px; }
+
+    /* Stats Bar */
+    .stats-bar { display: flex; justify-content: space-between; align-items: center; background: rgba(139, 92, 246, 0.1); border: 1px solid var(--border-purple); padding: 10px 20px; border-radius: 8px; font-size: 0.9rem; }
+    .stats-bar span { font-weight: bold; }
+    .badge { background: #3b0764; color: #d8b4fe; padding: 3px 10px; border-radius: 12px; border: 1px solid var(--border-purple); }
+
+    /* Typing Card */
+    .typing-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border-purple);
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .text-display {
+      font-family: 'Fira Code', monospace;
+      font-size: 1.15rem;
+      line-height: 1.8;
+      height: 140px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #1e2538;
+      user-select: none;
+    }
+    
+    .char { color: var(--text-muted); transition: all 0.05s ease; }
+    .char.correct { color: var(--text-green); text-shadow: 0 0 5px rgba(74, 222, 128, 0.4); }
+    .char.incorrect { color: var(--text-red); background: rgba(244, 63, 94, 0.2); border-radius: 2px; }
+    .char.current { background: var(--neon-cyan); color: #000; font-weight: bold; border-radius: 2px; box-shadow: 0 0 8px var(--neon-cyan); }
+
+    .typing-input-field {
+      width: 100%;
+      background: #090b14;
+      border: 1px solid var(--neon-cyan);
+      border-radius: 8px;
+      padding: 12px 15px;
+      color: #fff;
+      font-family: 'Fira Code', monospace;
+      font-size: 1.05rem;
+      outline: none;
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+    }
+
+    /* Keyboard Layout */
+    .keyboard-container {
+      background: var(--card-bg);
+      border: 1px solid #232740;
+      border-radius: 12px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .kb-row { display: flex; justify-content: center; gap: 5px; }
+    .key {
+      background: #1a1e33;
+      border: 1px solid #2e3454;
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 10px 0;
+      width: 44px;
+      text-align: center;
+      font-size: 0.8rem;
+      font-family: 'Fira Code', monospace;
+      box-shadow: 0 3px 0 #0f111e;
+      transition: all 0.08s ease;
+    }
+    .key.active { background: var(--neon-cyan); color: #000; font-weight: bold; box-shadow: 0 0 12px var(--neon-cyan); transform: translateY(2px); }
+    .key.space { width: 280px; }
+    .key.wide { flex-grow: 1; }
+
+    /* Profile UI Styling */
+    .profile-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-purple);
+      border-radius: 12px;
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+    .avatar-wrapper { position: relative; width: 110px; height: 110px; }
+    .profile-avatar { width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--neon-cyan); object-fit: cover; box-shadow: 0 0 15px var(--neon-cyan); }
+    .upload-btn {
+      position: absolute; bottom: 0; right: 0;
+      background: var(--neon-pink); color: white;
+      border: none; padding: 6px; border-radius: 50%;
+      cursor: pointer; font-size: 0.8rem; line-height: 1;
+    }
+
+    /* Right Section: Chat & Community */
+    .right-section {
+      background: var(--card-bg);
+      border: 1px solid var(--neon-cyan);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      max-height: 600px;
+    }
+    .chat-header { background: rgba(6, 182, 212, 0.1); border-bottom: 1px solid #1e293b; padding: 12px 15px; font-weight: bold; display: flex; justify-content: space-between; font-size: 0.9rem; }
+    .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem; }
+    .chat-msg { display: flex; gap: 10px; align-items: flex-start; }
+    .chat-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+    .msg-content .name { font-weight: bold; color: var(--neon-pink); font-size: 0.75rem; }
+    .msg-content .text { background: #1c2238; padding: 8px 12px; border-radius: 8px; margin-top: 3px; line-height: 1.4; word-break: break-word; }
+
+    .chat-input-area { padding: 10px; border-top: 1px solid #1e293b; display: flex; gap: 8px; background: #0f1222; }
+    .chat-input-area input { flex: 1; background: #181c2e; border: 1px solid #2e3454; border-radius: 6px; padding: 8px 12px; color: #fff; font-size: 0.85rem; outline: none; }
+    .chat-input-area button { background: var(--border-purple); color: #fff; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+
+    .online-list { border-top: 1px solid #1e293b; padding: 10px 15px; display: flex; flex-direction: column; gap: 8px; height: 120px; overflow-y: auto; background: rgba(0,0,0,0.2); }
+    .online-user { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <div class="navbar">
+    <div class="logo">⌨️ <span>TypingVerse</span></div>
+    
+    <div class="nav-right">
+      <div class="nav-links">
+        <a onclick="switchTab('home')" id="nav-home" class="active">HOME</a>
+        <a onclick="switchTab('leaderboard')" id="nav-leaderboard">LEADERBOARD</a>
+        <a onclick="switchTab('profile')" id="nav-profile">PROFILE</a>
+        <a onclick="switchTab('friends')" id="nav-friends">FRIENDS</a>
+      </div>
+
+      <!-- Language Selector -->
+      <select class="lang-select" id="lang-select" onchange="changeLanguage(this.value)">
+        <option value="km">ខ្មែរ (Khmer)</option>
+        <option value="en">English</option>
+        <option value="latin">Khmer Latin</option>
+        <option value="id">Indonesia</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="app-container">
+    
+    <!-- Left Section Tab Contents -->
+    <div class="left-section">
+      
+      <!-- TAB 1: HOME -->
+      <div id="tab-home" class="tab-content active">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h2 style="font-size: 1.2rem;" id="txt-title">Typing Test</h2>
+          <button onclick="resetTest()" style="background:var(--neon-cyan); border:none; color:#000; font-weight:bold; padding:5px 12px; border-radius:6px; cursor:pointer;">🔄 Restart</button>
+        </div>
+        
+        <div class="stats-bar">
+          <div>WPM: <span style="color:var(--neon-pink);" id="wpm-val">0</span></div>
+          <div>ACCURACY: <span style="color:var(--neon-cyan);" id="acc-val">100%</span></div>
+          <div>TIME: <span id="time-val">0:00</span></div>
+          <div class="badge">LVL: 15 (Explorer)</div>
+        </div>
+
+        <div class="typing-card">
+          <div class="text-display" id="text-display"></div>
+          <input type="text" class="typing-input-field" id="typing-input" placeholder="ចុចវាយនៅទីនេះ ដើម្បីចាប់ផ្តើម..." autocomplete="off">
+        </div>
+
+        <h3 style="font-size: 0.9rem; color: var(--text-muted);" id="txt-kb-title">Keyboard Layout</h3>
+        <div class="keyboard-container">
+          <div class="kb-row">
+            <div class="key" data-key="escape">Esc</div><div class="key" data-key="1">1</div><div class="key" data-key="2">2</div><div class="key" data-key="3">3</div><div class="key" data-key="4">4</div><div class="key" data-key="5">5</div><div class="key" data-key="6">6</div><div class="key" data-key="7">7</div><div class="key" data-key="8">8</div><div class="key" data-key="9">9</div><div class="key" data-key="0">0</div><div class="key" data-key="-">-</div><div class="key" data-key="=">=</div><div class="key wide" data-key="backspace">←</div>
+          </div>
+          <div class="kb-row">
+            <div class="key wide" data-key="tab">Tab</div><div class="key" data-key="q">Q</div><div class="key" data-key="w">W</div><div class="key" data-key="e">E</div><div class="key" data-key="r">R</div><div class="key" data-key="t">T</div><div class="key" data-key="y">Y</div><div class="key" data-key="u">U</div><div class="key" data-key="i">I</div><div class="key" data-key="o">O</div><div class="key" data-key="p">P</div><div class="key" data-key="[">[</div><div class="key" data-key="]">]</div><div class="key" data-key="\">\</div>
+          </div>
+          <div class="kb-row">
+            <div class="key wide" data-key="capslock">Caps</div><div class="key" data-key="a">A</div><div class="key" data-key="s">S</div><div class="key" data-key="d">D</div><div class="key" data-key="f">F</div><div class="key" data-key="g">G</div><div class="key" data-key="h">H</div><div class="key" data-key="j">J</div><div class="key" data-key="k">K</div><div class="key" data-key="l">L</div><div class="key" data-key=";">;</div><div class="key" data-key="'">'</div><div class="key wide" data-key="enter">Enter</div>
+          </div>
+          <div class="kb-row">
+            <div class="key wide" data-key="shift">Shift</div><div class="key" data-key="z">Z</div><div class="key" data-key="x">X</div><div class="key" data-key="c">C</div><div class="key" data-key="v">V</div><div class="key" data-key="b">B</div><div class="key" data-key="n">N</div><div class="key" data-key="m">M</div><div class="key" data-key=",">,</div><div class="key" data-key=".">.</div><div class="key" data-key="/">/</div><div class="key wide" data-key="shift">Shift</div>
+          </div>
+          <div class="kb-row">
+            <div class="key space" data-key=" ">Space</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: LEADERBOARD -->
+      <div id="tab-leaderboard" class="tab-content">
+        <h2>🏆 Leaderboard Top Players</h2>
+        <div class="typing-card">
+          <table style="width:100%; text-align:left; border-collapse: collapse;">
+            <tr style="border-bottom:1px solid #2e3454; color:var(--neon-cyan);">
+              <th style="padding:10px;">#</th><th>Player</th><th>WPM</th><th>Accuracy</th>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1e33;">
+              <td style="padding:10px;">🥇 1</td><td>Sokha Pro</td><td>135</td><td>99%</td>
+            </tr>
+            <tr style="border-bottom:1px solid #1a1e33;">
+              <td style="padding:10px;">🥈 2</td><td>Nara Speed</td><td>125</td><td>98%</td>
+            </tr>
+            <tr>
+              <td style="padding:10px;">🥉 3</td><td>Borey Khmer</td><td>110</td><td>95%</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 3: PROFILE -->
+      <div id="tab-profile" class="tab-content">
+        <h2>👤 User Profile</h2>
+        <div class="profile-card">
+          <div class="avatar-wrapper">
+            <img id="user-avatar-img" class="profile-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Smey" alt="Avatar">
+            <button class="upload-btn" onclick="document.getElementById('file-input').click()">📷</button>
+            <input type="file" id="file-input" accept="image/*" style="display:none" onchange="uploadAvatar(event)">
+          </div>
+
+          <h3 id="profile-name-display" style="color:var(--neon-pink);">Keo Chanreaksmey</h3>
+          <p style="color:var(--text-muted); font-size:0.85rem;">Level 15 Typing Explorer</p>
+          
+          <div style="width:100%; display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+            <label style="font-size:0.8rem; color:var(--neon-cyan);">កែសម្រួលឈ្មោះ៖</label>
+            <input type="text" id="edit-name-input" value="Keo Chanreaksmey" class="typing-input-field" style="padding:8px 12px;">
+            <button onclick="saveProfile()" style="background:var(--border-purple); color:white; border:none; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold;">រក្សាទុក</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: FRIENDS -->
+      <div id="tab-friends" class="tab-content">
+        <h2>👥 Friends List</h2>
+        <div class="typing-card">
+          <p>🟢 Sokha (Online)</p>
+          <p>🟢 Nara (Online)</p>
+          <p>🟢 Borey (Online)</p>
+          <p>🔴 Khemera (Offline)</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Community / Chat Section -->
+    <div class="right-section">
+      <div class="chat-header">
+        <span>🌐 GLOBAL CHAT</span>
+        <span style="color:var(--text-muted);">👥 <span id="online-count">4</span></span>
+      </div>
+
+      <div class="chat-messages" id="chat-box">
+        <div class="chat-msg">
+          <img class="chat-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Sokha" alt="Sokha">
+          <div class="msg-content">
+            <div class="name">User: Sokha <span style="color:var(--text-muted); font-weight:normal;">8:02 PM</span></div>
+            <div class="text">តោះ! លេង competitive!</div>
+          </div>
+        </div>
+        <div class="chat-msg">
+          <img class="chat-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Nara" alt="Nara">
+          <div class="msg-content">
+            <div class="name">User: Nara <span style="color:var(--text-muted); font-weight:normal;">8:01 PM</span></div>
+            <div class="text">WPM: 125!! សប្បាយចិត្តណាស់!</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <input type="text" id="chat-input" placeholder="វាយសារនៅទីនេះ..." onkeydown="if(event.key==='Enter') sendMsg()">
+        <button onclick="sendMsg()">SEND</button>
+      </div>
+
+      <div class="online-list">
+        <div class="online-user"><div class="status-dot"></div> Sokha</div>
+        <div class="online-user"><div class="status-dot"></div> Nara</div>
+        <div class="online-user"><div class="status-dot"></div> Borey</div>
+        <div class="online-user"><div class="status-dot" style="background:#64748b; box-shadow:none;"></div> Khemera</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+  
+    const dataKh = ["kal", "phearun", "nv", "vannak", "slanh", "kmeang", "jol", "jit", "der", "lg", "srat", "kor", "run", "tv", "vinh", "mor", "min", "derl", "jes", "klach", "nak", "na", "ngaii", "muy", "mean", "ke", "som", "lanh", "nh", "ter", "ort", "prom", "pi", "lob", "leler", "pek", "ban", "chea", "dg", "puk", "ng", "sit", "chkut", "name", "voan", "koy", "ouy", "sak", "bek", "jeang", "na", "ber", "vea", "tok", "nis", "klean", "bay", "has", "cher", "kbal", "nas", "lok", "hery", "thonh", "hot", "anh", "dob", "bek", "pler", "lan", "motor", "kev", "kabob", "nom", "nham", "bay", "mhob", "klean", "ey", "hmm", "puk", "hg", "rean", "kru", "lork", "kru", "nak", "ming", "pu", "kmeang", "has", "pler", "juk", "tnam", "poipet", "kmeang", "angkor", "wat", "vital", "cambodia", "khmer", "klang", "jit", "khg", "masel", "minh", "khg", "kbea", "chgay", "chganh", "cheat", "kdmv", "srul", "klang", "hea", "therk", "tmenh", "cher", "met", "av", "kor", "lyly", "chana", "noun", "neang", "ter", "neak", "jg", "niyeay", "ampi", "khang","ler", "banthem", "banteb", "mdg", "tt", "khjal", "tangos", "ster", "ter", "nv", "cheamuy", "krr", "chea", "nis", "sat", "avy", "muy", "tt", "na", "muy", "nv", "mean", "jomvinh", "doch", "derl", "sur", "nv", "chgay", "tlob", "trov", "doysa", "tleab", "pimon", "jam", "pderm", "kompong", "seavpav", "kmeang", "brozz", "krusa", "tix", "toch", "bun", "ahha", "somrab", "rksee", "ttul", "kbal", "jom", "thonh", "rhas", "kur", "niyeay", "pitherksamot", "klas", "avy", "pelklas", "knom", "tver", "beb", "oy", "peak", "vea", "veang", "kom", "tha", "oy", "nh", "min", "jes", "singkhmer", "morpi", "dak", "beab", "nis", "therb", "mean", "peak", "sorsea", "merl", "tv", "loy", "doch", "ke", "pheak", "jren", "peak", "yg", "sorsea", "klai", "klai", "doch", "chnes", "hx", "terb", "knom", "tver", "beb", "nis", "salarean", "mean", "kru", "nv", "tes", "mean", "nakmak", "bang", "paon", "trov", "jes", "slanh", "kne", "songsa", "sneaha", "kambit", "motor", "lanjis", "nakklas", "puk", "khea", "niyeay", "derm", "ke", "chea", "pi", "seas", "kmeang", "poipet", "ter", "mdg", "muy", "ngaii", "muy", "ngaii", "min", "kit", "khom", "phrong", "niyeay", "derm", "khom", "tv", "tham", "ten", "vaii", "khom", "tha", "koch", "baycha", "micheat", "breangkala", "av", "ach", "plerng", "punler"];
+    const dataEn = ["the", "great", "world", "both", "run", "by", "near", "most", "so", "people", "picture", "once", "large", "between", "most", "light", "write", "are", "go", "picture", "me", "country", "little", "keep", "read", "call", "never", "open", "that", "story", "good", "until", "write", "air", "kind", "there", "change", "far", "over", "any", "may", "three", "children", "said", "put", "is", "us", "that", "animal", "let", "was", "America", "change", "other", "always", "every", "animal", "find", "old", "picture", "made", "work", "school", "grow", "us", "ask", "life", "find", "spell", "never", "went", "she", "food", "really", "run", "almost", "own", "she", "left", "by", "question", "home", "or", "help", "second", "quickly", "just", "turn", "these", "state", "who", "so", "water", "even", "large", "eye", "below", "be", "face", "hear", "went", "at", "when", "number", "important", "sound", "who", "kecil", "into", "enough", "tell", "only", "country", "really", "turn", "white", "home", "they", "your", "because", "such", "not", "form", "how", "they", "left", "cut", "part", "sentence", "be", "between", "dream"];
+    const dataId = ["saya", "pulang", "biasa", "itu", "telah", "sambil", "punya", "hari", "yang", "anda", "dengan", "makin", "pada", "diri", "sini", "khusus", "jalan", "bahwa", "baru", "melakukan", "harus", "mencari", "bagian", "memang", "kamu", "anda", "datang", "kali", "uang", "ingin", "tanpa", "kemudian", "saat", "sesuai", "memang", "cepat", "jadi", "luar", "ke", "sering", "masuk", "dengan", "ada", "sangat", "banyak", "kepala", "sementara", "tentang", "ketika", "jadi", "tempat", "yaitu", "menjadi", "setelah", "menurut", "hati", "bagian", "tetapi", "tanpa", "uang", "sini", "memiliki", "sekalipun", "merupakan", "kalau", "juga", "maupun", "mana", "ku", "naik", "juta", "pulang", "tiba", "tetapi", "dapat", "kini", "baik", "naik", "ke", "mengatakan", "mudah", "mudah", "sekali", "hal", "pernah", "sedang", "tak", "paling", "serta", "melalui", "kami", "baik", "memberi", "malam", "lain", "dari", "mengatakan", "dia", "juga", "kepala", "hal", "untuk", "jauh", "punya", "untuk", "anak", "kembali", "semua", "akibat", "sini", "tentang", "tengah", "selalu", "tetapi", "hari", "maka", "di", "membuat", "sambil", "pusat", "kamu", "namun", "bukan", "bisa", "malam", "tempat", "tapi", "sering", "memang", "kalau", "kecil", "luar", "siap", "mencari", "pernah", "terus", "besar", "sejak", "akan", "jelas", "yaitu", "sekitar", "mereka", "mampu", "mata", "telah", "sini", "tetapi", "sebab", "diri", "mau", "jangan", "sehingga", "seluruh", "ingin", "aku", "sering", "juga", "ada", "kamu", "uang", "kembali", "punya", "langsung", "seluruh", "naik", "bahwa", "suatu", "kecil", "dia"];
+    const dataKhmer = ["សួស្តី", "កម្ពុជា", "សន្តិភាព", "រស្មី", "វាយអត្ថបទ", "រៀន", "ចំណេះដឹង", "បច្ចេកវិទ្យា", "អនាគត", "ជោគជ័យ", "ស្រលាញ់", "សាលារៀន", "គ្រូ", "សិស្ស", "មិត្តភក្តិ", "សប្បាយ", "រីករាយ", "ម្ហូប", "អង្គរវត្ត", "ខ្មែរ", "វប្បធម៌", "អរិយធម៌", "ប្រវត្តិសាស្ត្រ", "ការងារ", "ព្យាយាម", "អត់ធ្មត់", "គោលដៅ", "សុបិន", "កម្លាំង", "ចិត្ត", "ជឿជាក់", "អរគុណ", "សុំទោស", "សូមជម្រាបសួរ", "មេឃ", "ដី", "ទឹក", "ភ្លើង", "ខ្យល់", "ដើមឈើ", "ផ្កា", "សត្វ", "ភ្នំ", "សមុទ្រ", "កោះ", "ទន្លេ", "ផ្លូវ", "ផ្ទះ", "គ្រួសារ", "បងប្អូន", "ឪពុក", "ម្តាយ", "កូន", "ចៅ", "លោកតា", "លោកយាយ", "ក្នុង", "ជាតិ", "នេះ", "គ្មាន", "ចង់", "បាន", "អ្វី", "ឡើយ", "ត្រឹម", "ចិត្ត", "ស្នេហ៍", "អូន", "មក", "បង", "ទោះ", "មិន", "ល្អ", "គ្រប់", "យ៉ាង", "តែជាសំណាងបង","មានអូន", "ក្នុងបេះដូង", "គ្រប់គ្រាន់ហើយ"];
+
+    const navTranslations = {
+      km: { home: "ទំព័រដើម", leaderboard: "ចំណាត់ថ្នាក់", profile: "ប្រវត្តិរូប", friends: "មិត្តភក្តិ", placeholder: "ចុចវាយនៅទីនេះ ដើម្បីចាប់ផ្តើម...", kb: "ក្ដារចុច Virtual" },
+      en: { home: "HOME", leaderboard: "LEADERBOARD", profile: "PROFILE", friends: "FRIENDS", placeholder: "Click here to start typing...", kb: "Keyboard Layout" },
+      latin: { home: "TOMPOR DERM", leaderboard: "CHAMNAT THNAK", profile: "PRAVATI ROUP", friends: "MITTAK PHEAK", placeholder: "Chuch vay ney thene...", kb: "Kdar Chuch Virtual" },
+      id: { home: "BERANDA", leaderboard: "PAPAN SKOR", profile: "PROFIL", friends: "TEMAN", placeholder: "Ketik di sini untuk memulai...", kb: "Tata Letak Keyboard" }
+    };
+
+    let currentLang = 'km';
+    let targetText = "";
+
+    const textDisplay = document.getElementById('text-display');
+    const inputField = document.getElementById('typing-input');
+    const wpmEl = document.getElementById('wpm-val');
+    const accEl = document.getElementById('acc-val');
+    const timeEl = document.getElementById('time-val');
+
+    let startTime = null;
+    let timerInterval = null;
+    let isFinished = false;
+    let currentUserAvatar = "https://api.dicebear.com/7.x/bottts/svg?seed=Smey";
+
+    // Random sentence generator from word arrays
+    function generateRandomSentence(langKey, wordCount = 25) {
+      let array;
+      if (langKey === 'km') array = dataKhmer;
+      else if (langKey === 'en') array = dataEn;
+      else if (langKey === 'latin') array = dataKh;
+      else if (langKey === 'id') array = dataId;
+      
+      let result = [];
+      for (let i = 0; i < wordCount; i++) {
+        const randomIndex = Math.floor(Math.random() * array.length);
+        result.push(array[randomIndex]);
+      }
+      return result.join(' ');
+    }
+
+    // Tab Switcher Function
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-links a').forEach(el => el.classList.remove('active'));
+
+      document.getElementById('tab-' + tabName).classList.add('active');
+      document.getElementById('nav-' + tabName).classList.add('active');
+    }
+
+    // Language Change Function
+    function changeLanguage(langKey) {
+      currentLang = langKey;
+      
+      const t = navTranslations[langKey];
+      document.getElementById('nav-home').innerText = t.home;
+      document.getElementById('nav-leaderboard').innerText = t.leaderboard;
+      document.getElementById('nav-profile').innerText = t.profile;
+      document.getElementById('nav-friends').innerText = t.friends;
+      document.getElementById('typing-input').placeholder = t.placeholder;
+      document.getElementById('txt-kb-title').innerText = t.kb;
+
+      resetTest();
+    }
+
+    // Render Text Spans
+    function renderText() {
+      targetText = generateRandomSentence(currentLang, 25);
+      textDisplay.innerHTML = '';
+      targetText.split('').forEach((char, index) => {
+        const span = document.createElement('span');
+        span.className = 'char';
+        if (index === 0) span.classList.add('current');
+        span.innerText = char;
+        textDisplay.appendChild(span);
+      });
+    }
+
+    renderText();
+
+    // Typing Logic
+    inputField.addEventListener('input', () => {
+      if (!startTime && inputField.value.length > 0) {
+        startTime = new Date();
+        timerInterval = setInterval(updateTimer, 1000);
+      }
+
+      if (isFinished) return;
+
+      const typedVal = inputField.value;
+      const chars = textDisplay.querySelectorAll('.char');
+      let correctChars = 0;
+
+      chars.forEach((span, index) => {
+        const typedChar = typedVal[index];
+        span.classList.remove('correct', 'incorrect', 'current');
+
+        if (typedChar == null) {
+          if (index === typedVal.length) span.classList.add('current');
+        } else if (typedChar === span.innerText) {
+          span.classList.add('correct');
+          correctChars++;
+        } else {
+          span.classList.add('incorrect');
+        }
+      });
+
+      const accuracy = typedVal.length > 0 ? Math.round((correctChars / typedVal.length) * 100) : 100;
+      accEl.innerText = accuracy + '%';
+
+      if (startTime) {
+        const timeElapsedSeconds = (new Date() - startTime) / 1000;
+        const wpm = Math.round((correctChars / 5) / (timeElapsedSeconds / 60));
+        wpmEl.innerText = isNaN(wpm) || wpm < 0 ? 0 : wpm;
+      }
+
+      if (typedVal.length >= targetText.length) {
+        clearInterval(timerInterval);
+        isFinished = true;
+        inputField.disabled = true;
+        alert(`🎉 រួចរាល់! WPM: ${wpmEl.innerText} | Accuracy: ${accEl.innerText}`);
+      }
+    });
+
+    function updateTimer() {
+      if (!startTime) return;
+      const totalSeconds = Math.floor((new Date() - startTime) / 1000);
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      timeEl.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function resetTest() {
+      clearInterval(timerInterval);
+      startTime = null;
+      isFinished = false;
+      inputField.disabled = false;
+      inputField.value = '';
+      wpmEl.innerText = '0';
+      accEl.innerText = '100%';
+      timeEl.innerText = '0:00';
+      renderText();
+    }
+
+    // Profile Upload Picture Function
+    function uploadAvatar(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          currentUserAvatar = e.target.result;
+          document.getElementById('user-avatar-img').src = currentUserAvatar;
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function saveProfile() {
+      const newName = document.getElementById('edit-name-input').value;
+      if (newName) {
+        document.getElementById('profile-name-display').innerText = newName;
+        alert('រក្សាទុកប្រវត្តិរូបជោគជ័យ!');
+      }
+    }
+
+    // Chat Functions
+    function sendMsg() {
+      const chatInput = document.getElementById('chat-input');
+      const chatBox = document.getElementById('chat-box');
+      const profileName = document.getElementById('profile-name-display').innerText;
+
+      if (chatInput.value.trim() !== '') {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-msg';
+        msgDiv.innerHTML = `
+          <img class="chat-avatar" src="${currentUserAvatar}" alt="User">
+          <div class="msg-content">
+            <div class="name">${profileName} <span style="color:var(--text-muted); font-weight:normal;">${timeStr}</span></div>
+            <div class="text">${escapeHtml(chatInput.value)}</div>
+          </div>
+        `;
+        chatBox.appendChild(msgDiv);
+        chatInput.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // Keyboard Highlights
+    window.addEventListener('keydown', (e) => {
+      let key = e.key.toLowerCase();
+      const keyEl = document.querySelector(`.key[data-key="${key}"]`);
+      if (keyEl) keyEl.classList.add('active');
+    });
+
+    window.addEventListener('keyup', (e) => {
+      let key = e.key.toLowerCase();
+      const keyEl = document.querySelector(`.key[data-key="${key}"]`);
+      if (keyEl) keyEl.classList.remove('active');
+    });
+  </script>
+</body>
+</html>
